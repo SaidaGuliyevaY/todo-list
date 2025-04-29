@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Список задач</title>
+  <style>
+    /* Основной стиль страницы */
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      padding: 50px;
+    }
+
+    /* Контейнер для туду-листа */
+    .todo-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    /* Поле для ввода задач */
+    textarea {
+      width: 100%;
+      height: 80px;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      resize: none;
+    }
+
+    /* Кнопка добавления задач */
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      background: #28a745;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    /* Список задач */
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    /* Стиль задачи */
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    /* Отмеченные как выполненные */
+    li.completed span {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    /* Текст задачи */
+    .task-label {
+      flex-grow: 1;
+      margin-left: 10px;
+    }
+
+    /* Кнопка удаления задачи */
+    .delete-btn {
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 5px 8px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="todo-container">
+    <h2>Мой список задач</h2>
+    <!-- Многострочное поле для ввода задач -->
+    <textarea id="taskInput" placeholder="Введите задачи по одной на строку..."></textarea>
+    <!-- Кнопка для добавления задач -->
+    <button id="addBtn">Добавить задачи</button>
+    <!-- Контейнер для списка задач -->
+    <ul id="taskList"></ul>
+  </div>
+
+  <script>
+    // Получаем элементы из DOM
+    const taskInput = document.getElementById('taskInput');
+    const taskList = document.getElementById('taskList');
+    const addBtn = document.getElementById('addBtn');
+
+    // Загружаем задачи из localStorage или создаем пустой массив
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+    // Сохраняем задачи в localStorage
+    function saveTasks() {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    // Отображение задач на экране
+    function renderTasks() {
+      taskList.innerHTML = ''; // Очищаем текущий список
+
+      tasks.forEach((task, index) => {
+        const li = document.createElement('li');
+
+        // Если задача выполнена — применяем стиль
+        if (task.done) li.classList.add('completed');
+
+        // Чекбокс выполнения
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = task.done;
+        checkbox.addEventListener('change', () => {
+          tasks[index].done = !tasks[index].done;
+          saveTasks();
+          renderTasks();
+        });
+
+        // Текст задачи
+        const span = document.createElement('span');
+        span.textContent = task.text;
+        span.classList.add('task-label');
+
+        // Кнопка удаления
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'X';
+        delBtn.className = 'delete-btn';
+        delBtn.addEventListener('click', () => {
+          tasks.splice(index, 1); // Удаляем задачу
+          saveTasks();
+          renderTasks();
+        });
+
+        // Добавляем все элементы в строку задачи
+        li.appendChild(checkbox);
+        li.appendChild(span);
+        li.appendChild(delBtn);
+
+        // Добавляем строку в список
+        taskList.appendChild(li);
+      });
+    }
+
+    // Обработка добавления задач
+    addBtn.addEventListener('click', () => {
+      // Разбиваем текст на строки, убираем пустые
+      const newTasks = taskInput.value.trim().split('\n').filter(line => line.trim() !== '');
+      // Добавляем каждую задачу
+      newTasks.forEach(task => {
+        tasks.push({ text: task.trim(), done: false });
+      });
+
+      // Очищаем поле ввода и обновляем список
+      taskInput.value = '';
+      saveTasks();
+      renderTasks();
+    });
+
+    // Показываем задачи при загрузке страницы
+    renderTasks();
+  </script>
+</body>
+</html>
+
